@@ -6,20 +6,28 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
 	integrations: [
 		starlight({
-			title: 'My Docs',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
+			title: 'HapiAI',
+			defaultLocale: 'root',
+			locales: {
+				root: {
+					label: '简体中文',
+					lang: 'zh-CN',
+				},
+			},
+			social: {
+				github: 'https://github.com/hugetiny/hapiai',
+			},
 			sidebar: [
 				{
-					label: 'Guides',
+					label: '开始',
 					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
+						{ label: '项目介绍', link: '/guides/intro/' },
+						{ label: '安装指南', link: '/guides/installation/' },
 					],
 				},
-				{
-					label: 'Reference',
-					autogenerate: { directory: 'reference' },
-				},
+			],
+			customCss: [
+				'./src/styles/custom.css',
 			],
 		}),
 	],

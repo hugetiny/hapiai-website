@@ -1,40 +1,41 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: HapiAI
+description: 下一代 AI 聚合聊天平台
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  tagline: 重新定义你的 AI 交互体验
   image:
-    file: ../../assets/houston.webp
+    file: ../../assets/hero.svg
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: 立即开始
+      link: /guides/intro/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+      variant: primary
+    - text: GitHub
+      link: https://github.com/hugetiny/hapiai
       icon: external
-      variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+<div class="hero-gradient-text">
+  HapiAI
+</div>
+<div class="hero-subtitle">
+  不仅仅是聊天，更是智慧的聚合
+</div>
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="AI 网站聚合聊天" icon="rocket">
+		**独创功能**：打破孤岛，在一个界面畅聊所有你喜爱的 AI 网站。无需频繁切换，效率倍增。
 	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
+	<Card title="AI API 聚合聊天" icon="puzzle">
+		基于 **Perplexica** 深度二次开发。整合多种 AI API，提供强大、灵活的问答体验。
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
+	<Card title="桌面端 Alpha 测试" icon="laptop">
+		Windows, macOS, Linux 桌面端现已开启 Alpha 测试。极致性能，原生体验。
 	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="移动端蓄势待发" icon="mobile">
+		iOS 与 Android 版本正在紧锣密鼓地开发计划中。随时随地，HapiAI 随行。
 	</Card>
 </CardGrid>
