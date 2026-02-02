@@ -1,0 +1,185 @@
+---
+import Nebula from './Nebula.astro';
+
+const {
+  title = "HapiAI",
+  tagline = "AI 界中的海王",
+  subTagline = "轻松聚合所有流行 AI，让它们同时为你服务",
+  downloadText = "立即下载",
+  docsText = "阅读文档",
+  docsLink = "/guides/intro"
+} = Astro.props;
+---
+
+<Nebula />
+
+<div class="center-container">
+  <h1 class="shining-text">{title}</h1>
+  <p class="tagline">{tagline}</p>
+  <p class="sub-tagline">{subTagline}</p>
+
+  <div class="cta-group">
+    <a href="#" class="cta-button download">
+      <span class="icon">📥</span> {downloadText}
+    </a>
+    <a href={docsLink} class="cta-button docs">
+      <span class="icon">📖</span> {docsText}
+    </a>
+  </div>
+</div>
+
+<style>
+  /* Hide default Starlight UI elements for the homepage to be minimal */
+  :global(header), :global(.header), :global(.sidebar), :global(.right-sidebar), :global(footer), :global(.mobile-header), :global(nav), :global(.site-title), :global(#_top) {
+    display: none !important;
+  }
+
+  :global(.page) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  :global(.main-frame) {
+    padding-top: 0 !important;
+  }
+
+  :global(.content-panel) {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .center-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+    width: 100%;
+    display: block;
+
+    /* Backdrop to make text pop against busy background */
+    background: radial-gradient(circle at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 70%);
+    padding: 4rem 0;
+  }
+
+  .cta-group {
+    margin-top: 3rem;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .cta-button.download {
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+
+  .cta-button.download:hover {
+    transform: scale(1.05);
+    background: #fff;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+  }
+
+  .cta-button.docs {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .cta-button.docs:hover {
+    transform: scale(1.05);
+    background: rgba(0, 0, 0, 0.7);
+    border-color: #fff;
+  }
+
+  /* Shining Text Effect */
+  .shining-text {
+    font-size: 8rem;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.05em;
+
+    /* Holographic/Silver Gradient */
+    background: linear-gradient(
+      to right,
+      #666666 0%,
+      #ffffff 20%,
+      #666666 40%,
+      #666666 100%
+    );
+    background-size: 200% auto;
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    animation: shine 4s linear infinite;
+
+    /* Strong shadow for legibility */
+    filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.9));
+  }
+
+  @keyframes shine {
+    to {
+      background-position: 200% center;
+    }
+  }
+
+  .tagline {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+
+  .sub-tagline {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+  }
+
+  @media (max-width: 768px) {
+    .shining-text {
+      font-size: 4rem;
+    }
+    .tagline {
+      font-size: 1.8rem;
+    }
+    .sub-tagline {
+      font-size: 1rem;
+      padding: 0 1rem;
+    }
+    .cta-group {
+      flex-direction: column;
+      padding: 0 2rem;
+      gap: 1rem;
+    }
+    .cta-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

@@ -1,0 +1,368 @@
+---
+---
+<canvas id="nebula"></canvas>
+
+<style>
+  #nebula {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: #000; /* Deep black background */
+  }
+</style>
+
+<script>
+class Nebula {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
+
+    // Configuration
+    this.iconSize = 120; // Slightly smaller for better density
+    this.blurAmount = 40; // Reduced blur to ensure visibility
+    this.speed = 0.2; // Slower, more majestic
+
+// List of AI domains (Filtered for Chat/GenAI, removed generic tools)
+    this.domains = [
+      // Chinese AIs
+      'kimi.moonshot.cn', 'doubao.com', 'tongyi.aliyun.com', 'chat.deepseek.com',
+      'yiyan.baidu.com', 'hunyuan.tencent.com', 'xinghuo.xfyun.cn', 'hailuoai.com',
+      'tiangong.cn', 'minimax.io',
+
+      // Global Chat/LLM
+      'chatgpt.com', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com',
+      'perplexity.ai', 'pi.ai', 'poe.com', 'you.com', 'phind.com', 'huggingface.co',
+      'groq.com', 'mistral.ai', 'cohere.com', 'character.ai', 'replika.com',
+      'felo.ai', 'genspark.ai', 'komo.ai',
+
+      // Global Generative (Image/Video/Audio)
+      'midjourney.com', 'stability.ai', 'runwayml.com', 'pika.art', 'suno.com',
+      'udio.com', 'leonardo.ai', 'civitai.com', 'krea.ai', 'magnific.ai',
+
+      // Writing/Productivity (Strictly AI Core)
+      'jasper.ai', 'copy.ai', 'writesonic.com', 'rytr.me'
+    ];
+
+    this.particles = [];
+    this.pendingImages = []; // Queue for batching
+    this.running = true;
+
+    this.init();
+  }
+
+  async init() {
+    console.log("Nebula: Initializing...");
+
+    // Start animation loop immediately (will draw black until particles arrive)
+    this.animate();
+
+    // Helper: Load image with timeout
+    const loadImage = (src) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            let isFinished = false;
+
+            const finish = (result) => {
+                if (isFinished) return;
+                isFinished = true;
+                resolve(result);
+            };
+
+            img.onload = () => finish(img);
+            img.onerror = () => finish(null);
+
+            // Timeout 2s
+            setTimeout(() => {
+                if (!isFinished) {
+                    img.src = "";
+                    finish(null);
+                }
+            }, 2000);
+
+            img.src = src;
+        });
+    };
+
+    const fetchIcon = async (domain) => {
+        const cacheKey = `fav_url_${domain}`;
+        const cachedUrl = localStorage.getItem(cacheKey);
+
+        // 1. Try cached URL first
+        if (cachedUrl) {
+             const img = await loadImage(cachedUrl);
+             if (img) {
+                 this.pendingImages.push(img);
+                 this.checkBatch();
+                 return;
+             }
+             // If cached URL fails (e.g. expired), remove it
+             localStorage.removeItem(cacheKey);
+        }
+
+        // 2. Fallback Chain
+        const sources = [
+            `https://${domain}/favicon.ico`,
+            `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+            `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+        ];
+
+        for (const src of sources) {
+            const img = await loadImage(src);
+            if (img) {
+                // Success! Cache it and add to queue
+                localStorage.setItem(cacheKey, src);
+                this.pendingImages.push(img);
+                this.checkBatch();
+                return;
+            }
+        }
+    };
+
+    // Fire and forget
+    this.domains.forEach(domain => fetchIcon(domain));
+
+    // Periodic flush to ensure stragglers get added
+    setInterval(() => {
+        if (this.pendingImages.length > 0) {
+            this.flushBatch();
+        }
+    }, 3000);
+
+    this.resizeHandler = () => this.resize();
+    window.addEventListener('resize', this.resizeHandler);
+  }
+
+  checkBatch() {
+      // Strategy:
+      // 1. If we have 0 particles, wait for 10 images to start (First Batch)
+      // 2. If we already have particles, wait for batches of 5 to add more (Supplement)
+
+      const currentCount = this.particles.length;
+      const pendingCount = this.pendingImages.length;
+      const totalFound = currentCount + pendingCount;
+
+      // Log progress so user knows how many icons are found
+      if (pendingCount > 0) {
+          console.log(`Nebula: Progress - Active: ${currentCount}, Pending: ${pendingCount}, Total Found: ${totalFound}`);
+      }
+
+      if (currentCount === 0) {
+          if (pendingCount >= 10) {
+              console.log("Nebula: First batch of 10 ready. Launching.");
+              this.flushBatch();
+          }
+      } else {
+          if (pendingCount >= 5) {
+              console.log("Nebula: Supplementary batch ready. Adding.");
+              this.flushBatch();
+          }
+      }
+  }
+
+  flushBatch() {
+      // Move all pending images to particles
+      // 1 Particle = 1 Unique Image. No duplicates.
+      const newImages = [...this.pendingImages];
+      this.pendingImages = []; // Clear queue
+
+      newImages.forEach(img => {
+          this.particles.push(this.createParticle(img));
+      });
+  }
+
+  createParticle(specificImage) {
+      // Fixed size for consistency
+      const size = 90;
+
+      // Find a position that doesn't overlap with existing particles
+      let x, y;
+      let attempts = 0;
+      const maxAttempts = 50;
+
+      do {
+          x = Math.random() * this.width;
+          y = Math.random() * this.height;
+
+          let overlapping = false;
+          for (const p of this.particles) {
+              const dx = x - p.x;
+              const dy = y - p.y;
+              const dist = Math.sqrt(dx*dx + dy*dy);
+              if (dist < (size + p.size) * 0.8) { // 0.8 factor allows slight overlap but prevents stacking
+                  overlapping = true;
+                  break;
+              }
+          }
+
+          if (!overlapping) break;
+          attempts++;
+      } while (attempts < maxAttempts);
+
+      return {
+        x: x,
+        y: y,
+        vx: (Math.random() - 0.5) * this.speed,
+        vy: (Math.random() - 0.5) * this.speed,
+        size: size,
+        image: specificImage, // Strictly assigned
+        color: this.getRandomColor(),
+        angle: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 0.005,
+        phase: Math.random() * Math.PI * 2,
+        phaseSpeed: 0.002 + Math.random() * 0.004
+      };
+  }
+
+  getRandomColor() {
+    const colors = [
+      '#ff0080', '#7928ca', '#0070f3', '#00dfd8', '#ff4d4d', '#f5a623', '#32CD32', '#FFD700'
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  resize() {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
+  }
+
+  destroy() {
+    this.running = false;
+    window.removeEventListener('resize', this.resizeHandler);
+  }
+
+  animate() {
+    if (!this.running) return;
+
+    this.ctx.clearRect(0, 0, this.width, this.height);
+
+    // Background
+    this.ctx.fillStyle = '#000000';
+    this.ctx.fillRect(0, 0, this.width, this.height);
+
+    // Restore Visual Effects
+    // Use 'screen' blend mode for glowing interaction
+    this.ctx.globalCompositeOperation = 'screen';
+
+    // Separation Logic: Gently push particles apart if they get too close
+    for (let i = 0; i < this.particles.length; i++) {
+        for (let j = i + 1; j < this.particles.length; j++) {
+            const p1 = this.particles[i];
+            const p2 = this.particles[j];
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const minDist = (p1.size + p2.size) * 0.8; // Maintain some distance
+
+            if (dist < minDist && dist > 0) {
+                const angle = Math.atan2(dy, dx);
+                const force = 0.05; // Very gentle push
+
+                // Adjust velocities to steer away
+                p1.vx += Math.cos(angle) * force;
+                p1.vy += Math.sin(angle) * force;
+                p2.vx -= Math.cos(angle) * force;
+                p2.vy -= Math.sin(angle) * force;
+            }
+        }
+    }
+
+    this.particles.forEach(p => {
+      // Apply velocity limits to prevent them from speeding up too much due to separation forces
+      const maxSpeed = this.speed * 2;
+      const speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+      if (speed > maxSpeed) {
+          p.vx = (p.vx / speed) * maxSpeed;
+          p.vy = (p.vy / speed) * maxSpeed;
+      }
+
+      p.x += p.vx;
+      p.y += p.vy;
+      p.angle += p.spin;
+      p.phase += p.phaseSpeed; // Update breathing phase
+
+      if (p.x < -p.size) { p.x = this.width + p.size; this.resetParticle(p); }
+      if (p.x > this.width + p.size) { p.x = -p.size; this.resetParticle(p); }
+      if (p.y < -p.size) { p.y = this.height + p.size; this.resetParticle(p); }
+      if (p.y > this.height + p.size) { p.y = -p.size; this.resetParticle(p); }
+
+      this.ctx.save();
+      this.ctx.translate(p.x, p.y);
+      this.ctx.rotate(p.angle);
+
+      // Calculate breathing values
+      // Cycle goes from -1 to 1
+      const cycle = Math.sin(p.phase);
+      // Blur: 0px (sharp) to 8px (blurry)
+      const currentBlur = 4 * (1 + cycle);
+      // Opacity: 0.4 (dim) to 0.7 (brighter) - overall dimmer than before
+      const currentOpacity = 0.4 + 0.15 * cycle;
+
+      if (p.image) {
+          // 1. Static Glow Layer (Always blurry, very faint background)
+          this.ctx.save();
+          this.ctx.filter = 'blur(15px) brightness(0.8)';
+          this.ctx.globalAlpha = 0.2;
+          this.ctx.drawImage(p.image, -p.size/2, -p.size/2, p.size, p.size);
+          this.ctx.restore();
+
+          // 2. Breathing Main Layer (Sharp <-> Blur cycle)
+          // Also slightly darkened (brightness 0.8) to not compete with text
+          this.ctx.save();
+          this.ctx.filter = `brightness(0.8) blur(${currentBlur}px)`;
+          this.ctx.globalAlpha = currentOpacity;
+          this.ctx.drawImage(p.image, -p.size/2, -p.size/2, p.size, p.size);
+          this.ctx.restore();
+      } else {
+         // Fallback glowing orb
+         this.ctx.shadowBlur = 20;
+         this.ctx.shadowColor = p.color;
+         this.ctx.fillStyle = p.color;
+         this.ctx.globalAlpha = currentOpacity;
+         this.ctx.beginPath();
+         this.ctx.arc(0, 0, p.size/3, 0, Math.PI*2);
+         this.ctx.fill();
+      }
+
+      this.ctx.restore();
+    });
+
+    this.ctx.globalCompositeOperation = 'source-over';
+
+    requestAnimationFrame(() => this.animate());
+  }
+
+  resetParticle(p) {
+      // When a particle goes off screen, just reset its position.
+      // DO NOT change its image. This ensures 1-to-1 mapping and no duplicates.
+      // We only randomize position and velocity.
+  }
+}
+
+let nebulaInstance = null;
+
+function initNebula() {
+  const canvas = document.getElementById('nebula');
+  if (canvas) {
+    if (nebulaInstance) {
+        nebulaInstance.destroy();
+    }
+    nebulaInstance = new Nebula(canvas);
+  }
+}
+
+document.addEventListener('astro:page-load', initNebula);
+if (document.readyState === 'complete') {
+    initNebula();
+} else {
+    document.addEventListener('DOMContentLoaded', initNebula);
+}
+</script>

@@ -16,7 +16,7 @@
        <path d="M400 300 Q 500 100 600 300 T 800 300 T 600 500 T 400 500 T 200 500 T 0 300 T 200 100 T 400 300" fill="white" />
     </mask>
   </defs>
-  
+
   <!-- Background Glow -->
   <circle cx="400" cy="300" r="200" fill="url(#grad1)" filter="url(#glow)" opacity="0.4">
     <animate attributeName="r" values="200;220;200" dur="6s" repeatCount="indefinite" />
@@ -27,7 +27,7 @@
     <circle cx="0" cy="0" r="150" stroke="url(#grad1)" stroke-width="2" fill="none" opacity="0.5" stroke-dasharray="10 10">
        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="20s" repeatCount="indefinite" />
     </circle>
-    
+
     <circle cx="150" cy="0" r="10" fill="#fff" filter="url(#glow)">
        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="20s" repeatCount="indefinite" />
     </circle>
@@ -37,6 +37,6 @@
   <path d="M350 250 L450 250 L450 350 L350 350 Z" stroke="white" stroke-width="4" fill="none" transform="rotate(45 400 300)">
       <animateTransform attributeName="transform" type="rotate" from="45 400 300" to="405 400 300" dur="10s" repeatCount="indefinite" />
   </path>
-  
+
   <text x="400" y="550" text-anchor="middle" fill="url(#grad1)" font-family="sans-serif" font-size="24" font-weight="bold" letter-spacing="4" opacity="0.8">HAPIAI</text>
 </svg>
